@@ -20,6 +20,14 @@ GetOptions(
     'create-required-folder|f!' => \$create_required_folder
     );
 
+# generate a list of all zpools in the system
+my $zpools = get_all_zpools();
+
+foreach my $zpool (@{$zpools})
+{
+    INFO "Working on zpool '$zpool'";
+}
+
 # sub get_all_zpools
 #
 # returns an array of all available zpools in the system
