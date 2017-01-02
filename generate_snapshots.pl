@@ -20,6 +20,28 @@ GetOptions(
     'create-required-folder|f!' => \$create_required_folder
     );
 
+# sub get_all_zpools
+#
+# returns an array of all available zpools in the system
+
+sub get_all_zpools
+{
+    my $cmd = "sudo zpool list -H -o name";
+
+    DEBUG "Running command '$cmd'";
+
+    my $output = qx($cmd);
+
+    if ($? != 0)
+    {
+	die "Unable to run command '$cmd'\n";
+    }
+
+    my @result = split(/\n/, $output);
+
+    return \@result;
+}
+
 =pod
 
 =head1 generate_snapshots.pl
