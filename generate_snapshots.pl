@@ -5,6 +5,11 @@ use warnings;
 
 use Getopt::Long;
 
+use Log::Log4perl qw(:easy);
+Log::Log4perl->easy_init($INFO);
+
+my $VERSION = v0.1.0;
+
 my $backup_snapshot_name   = "backup-snap";
 my $clone_mount_point      = "/backup";
 my $create_required_folder = 1;
