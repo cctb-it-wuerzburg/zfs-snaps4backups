@@ -72,6 +72,10 @@ foreach my $current_dataset (@dataset)
     DEBUG "Trying to do a snapshot of '$current_dataset->{zfs}' with the name '$backup_snapshot_name'";
     my $snapshot_name = create_snapshot($current_dataset->{zfs}, $backup_snapshot_name);
     INFO "Created snapshot '$snapshot_name'";
+
+    # check if folder exists for mounting the clone
+    my $clone_mountpoint = check_or_create_folder($current_dataset->{mountpoint}, $clone_mount_point);
+    INFO "Created folder '$clone_mountpoint'";
 }
 
 # sub get_all_zpools
@@ -258,9 +262,6 @@ sub check_or_create_folder
 		LOGDIE("problem creating $file: $message");
 	    }
 	}
-    }
-    else {
-	INFO "Created folder '$path'";
     }
 
     return $path;
