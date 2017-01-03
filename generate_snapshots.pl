@@ -194,15 +194,30 @@ sub create_snapshot
     }
 
     my $snap = join("@", ($zfs, $snapshotname));
-    my $cmd = "zfs snapshot $snap";
+
+    # check if the snapshot exists
+    my $cmd = "zfs list -t snapshot $snap";
 
     DEBUG "Running command '$cmd'";
 
     my $output = qx($cmd);
 
-    if ($? != 0)
+    if ($? == 0)
     {
-	LOGDIE("Unable to run command '$cmd'\n");
+	# snapshot exists
+	INFO "Snapshot '$snap' exists. Assuming an interrupted backup and returning old snapshot";
+    } else {
+	# snapshot not yet exists, create it
+	$cmd = "zfs snapshot $snap";
+
+	DEBUG "Running command '$cmd'";
+
+	$output = qx($cmd);
+
+	if ($? != 0)
+	{
+	    LOGDIE("Unable to run command '$cmd'\n");
+	}
     }
 
     return $snap;
