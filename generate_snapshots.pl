@@ -70,7 +70,7 @@ sub get_all_zfs
 	LOGDIE("No value for zpool is given, but you need to provide one!");
     }
 
-    my $cmd = "zfs list -H -r -o name $zpool";
+    my $cmd = "zfs list -H -r -o name -t filesystem $zpool";
 
     DEBUG "Running command '$cmd'";
 
