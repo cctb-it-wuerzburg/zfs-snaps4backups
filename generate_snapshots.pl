@@ -9,6 +9,7 @@ use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init($INFO);
 
 use File::Spec;
+use File::Path;
 
 my $VERSION = v0.1.0;
 
@@ -221,6 +222,48 @@ sub create_snapshot
     }
 
     return $snap;
+}
+
+# sub check_or_create_folder
+#
+# creates folder structure if it does not exist
+
+sub check_or_create_folder
+{
+    my $mountpoint = shift;
+
+    unless (defined $mountpoint)
+    {
+	LOGDIE("No value for mountpoint is given, but you need to provide one!");
+    }
+
+    my $backupfolder = shift;
+
+    unless (defined $backupfolder)
+    {
+	LOGDIE("No value for backupfolder is given, but you need to provide one!");
+    }
+
+    my $path = File::Spec->catdir( $backupfolder, $mountpoint );
+
+    DEBUG "Will try to create folder '$path'";
+    File::Path->make_path($path, { error => \my $err } );
+    if (@$err) {
+	for my $diag (@$err) {
+	    my ($file, $message) = %$diag;
+	    if ($file eq '') {
+		LOGDIE("general error: $message");
+	    }
+	    else {
+		LOGDIE("problem creating $file: $message");
+	    }
+	}
+    }
+    else {
+	INFO "Created folder '$path'";
+    }
+
+    return $path;
 }
 
 =pod
