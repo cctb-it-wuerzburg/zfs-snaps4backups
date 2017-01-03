@@ -165,7 +165,40 @@ sub get_mountstatus_and_mountpoint_for_zfs
     return $mountpoint;
 }
 
+# sub create_snapshot
+#
+# creates a snapshot of a zfs and returns the complete name bases on the name of a zfs and a snapshot name
 
+sub create_snapshot
+{
+    my $zfs = shift;
+
+    unless (defined $zfs)
+    {
+	LOGDIE("No value for zfs is given, but you need to provide one!");
+    }
+
+    my $snapshotname = shift;
+
+    unless (defined $snapshotname)
+    {
+	LOGDIE("No value for snapshotname is given, but you need to provide one!");
+    }
+
+    my $snap = join("@", ($zfs, $snapshotname));
+    my $cmd = "zfs snapshot $snap";
+
+    DEBUG "Running command '$cmd'";
+
+    my $output = qx($cmd);
+
+    if ($? != 0)
+    {
+	LOGDIE("Unable to run command '$cmd'\n");
+    }
+
+    return $snap;
+}
 
 =pod
 
