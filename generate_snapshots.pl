@@ -76,6 +76,9 @@ foreach my $current_dataset (@dataset)
     # check if folder exists for mounting the clone
     my $clone_mountpoint = check_or_create_folder($current_dataset->{mountpoint}, $clone_mount_point);
     INFO "Created folder '$clone_mountpoint'";
+
+    # clone the snapshot as read only with correct mountpoint
+    clone_snapshot_ro_with_mountpoint($snapshot_name, $clone_mountpoint);
 }
 
 # sub get_all_zpools
