@@ -50,6 +50,37 @@ sub get_all_zpools
     return \@result;
 }
 
+# sub get_all_zfs
+#
+# returns an array of all available zfs for a given pool
+
+sub get_all_zfs
+{
+    my $zpool = shift;
+
+    unless (defined $zpool)
+    {
+	LOGDIE("No value for zpool is given, but you need to provide one!");
+    }
+
+    my $cmd = "zfs list -H -r -o name $zpool";
+
+    DEBUG "Running command '$cmd'";
+
+    my $output = qx($cmd);
+
+    if ($? != 0)
+    {
+	LOGDIE("Unable to run command '$cmd'\n");
+    }
+
+    my @result = split(/\n/, $output);
+
+    return \@result;
+}
+
+
+
 =pod
 
 =head1 generate_snapshots.pl
