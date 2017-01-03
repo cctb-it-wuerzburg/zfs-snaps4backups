@@ -68,7 +68,9 @@ foreach my $zpool (@{$zpools})
 foreach my $current_dataset (@dataset)
 {
     # create snapshot
+    DEBUG "Trying to do a snapshot of '$current_dataset->{zfs}' with the name '$backup_snapshot_name'";
     my $snapshot_name = create_snapshot($current_dataset->{zfs}, $backup_snapshot_name);
+    INFO "Created snapshot '$snapshot_name'";
 }
 
 # sub get_all_zpools
