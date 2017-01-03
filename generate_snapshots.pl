@@ -267,6 +267,48 @@ sub check_or_create_folder
     return $path;
 }
 
+# sub clone_snapshot_ro_with_mountpoint
+#
+# creates a readonly clone of a backup snapshot and mounts it to a specified mountpoint
+
+sub clone_snapshot_ro_with_mountpoint
+{
+    my $snapshotname = shift;
+
+    unless (defined $snapshotname)
+    {
+	LOGDIE("No value for snapshotname is given, but you need to provide one!");
+    }
+
+    my $mountpoint = shift;
+
+    unless (defined $mountpoint)
+    {
+	LOGDIE("No value for mountpoint is given, but you need to provide one!");
+    }
+
+    my $zfs_clone = $snapshotname;
+    unless ($zfs_clone =~ tr/@/@/ != 0)
+    {
+	LOGDIE "More than one @ in snapshotname '$snapshotname'";
+    }
+
+    $zfs_clone =~ s/@/_4_backup_/;
+
+    DEBUG "Trying to clone '$snapshotname' to '$zfs_clone' as readonly set with mountpoint '$mountpoint'";
+    my $cmd = "zfs clone -o readonly=on -o mountpoint=$mountpoint $snapshotname $zfs_clone";
+
+    DEBUG "Running command '$cmd'";
+    my $output = qx($cmd);
+
+    if ($? != 0)
+    {
+	LOGDIE("Unable to run command '$cmd'\n");
+    }
+
+    return $zfs_clone;
+}
+
 =pod
 
 =head1 generate_snapshots.pl
