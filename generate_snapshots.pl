@@ -79,6 +79,9 @@ foreach my $current_dataset (@dataset)
 
     # clone the snapshot as read only with correct mountpoint
     clone_snapshot_ro_with_mountpoint($snapshot_name, $clone_mountpoint);
+
+    # return the path to the clone
+    print $clone_mountpoint,"\n";
 }
 
 # sub get_all_zpools
