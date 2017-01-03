@@ -23,7 +23,7 @@ GetOptions(
     );
 
 # dataset stores all information
-my $dataset = {};
+my @dataset = ();
 
 # generate a list of all zpools in the system
 my $zpools = get_all_zpools();
@@ -52,9 +52,13 @@ foreach my $zpool (@{$zpools})
 	    INFO "Seems that '$zfs' is currently not mounted";
 	}
 
-	$dataset->{$zpool}{$zfs}{mountpoint} = $mountpoint;
-	$dataset->{$zpool}{$zfs}{mounted} = (defined $mountpoint) ? 1 : undef;
-	$dataset->{$zpool}{$zfs}{dirs} = \@dirs;
+	push(@dataset, {
+	    zpool => $zpool,
+	    zfs   => $zfs,
+	    mountpoint => $mountpoint,
+	    mounted => (defined $mountpoint) ? 1 : undef,
+	    dirs => \@dirs,
+	     });
     }
 }
 
