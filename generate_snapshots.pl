@@ -78,7 +78,7 @@ foreach my $current_dataset (@dataset)
     INFO "Created folder '$clone_mountpoint'";
 
     # clone the snapshot as read only with correct mountpoint
-    clone_snapshot_ro_with_mountpoint($snapshot_name, $clone_mountpoint);
+    clone_snapshot_ro_with_mountpoint($current_dataset->{zpool}, join("/", ($current_dataset->{zpool}, $backup_snapshot_name)), $snapshot_name, $clone_mountpoint);
 
     # return the path to the clone
     print $clone_mountpoint,"\n";
@@ -279,6 +279,18 @@ sub check_or_create_folder
 
 sub clone_snapshot_ro_with_mountpoint
 {
+    my $zpool = shift;
+    unless (defined $zpool)
+    {
+	LOGDIE("No value for zpool is given, but you need to provide one!");
+    }
+
+    my $zpool_backup = shift;
+    unless (defined $zpool)
+    {
+	LOGDIE("No value for zpool is given, but you need to provide one!");
+    }
+
     my $snapshotname = shift;
 
     unless (defined $snapshotname)
@@ -299,7 +311,8 @@ sub clone_snapshot_ro_with_mountpoint
 	LOGDIE "More than one @ in snapshotname '$snapshotname'";
     }
 
-    $zfs_clone =~ s/@/_4_backup_/;
+    $zfs_clone =~ s/@.+//;
+    $zfs_clone =~ s/$zpool/$zpool_backup/;
 
     DEBUG "Trying to clone '$snapshotname' to '$zfs_clone' as readonly set with mountpoint '$mountpoint'";
     my $cmd = "zfs clone -o readonly=on -o mountpoint=$mountpoint $snapshotname $zfs_clone";
