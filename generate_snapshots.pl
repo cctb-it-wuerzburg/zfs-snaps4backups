@@ -26,6 +26,13 @@ my $zpools = get_all_zpools();
 foreach my $zpool (@{$zpools})
 {
     INFO "Working on zpool '$zpool'";
+
+    my $zfs_set = get_all_zfs($zpool);
+
+    foreach my $zfs (@{$zfs_set})
+    {
+	INFO "Working on zfs '$zfs'";
+    }
 }
 
 # sub get_all_zpools
