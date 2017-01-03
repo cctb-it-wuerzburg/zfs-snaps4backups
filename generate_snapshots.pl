@@ -42,7 +42,7 @@ sub get_all_zpools
 
     if ($? != 0)
     {
-	die "Unable to run command '$cmd'\n";
+	LOGDIE("Unable to run command '$cmd'\n");
     }
 
     my @result = split(/\n/, $output);
