@@ -62,6 +62,9 @@ foreach my $zpool (@{$zpools})
     }
 }
 
+# sort the dataset based on the mountpoint directory level, to asure the existance of required folders
+@dataset = sort { int(@{$a->{dirs}}) <=> int(@{$b->{dirs}}) || $a->{mountpoint} cmp $b->{mountpoint} || $a->{zpool} cmp $b->{zpool} || $a->{zfs} cmp $b->{zfs} } @dataset;
+
 # sub get_all_zpools
 #
 # returns an array of all available zpools in the system
