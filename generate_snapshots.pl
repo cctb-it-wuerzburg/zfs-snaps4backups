@@ -8,6 +8,8 @@ use Getopt::Long;
 use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init($INFO);
 
+use File::Spec;
+
 my $VERSION = v0.1.0;
 
 my $backup_snapshot_name   = "backup-snap";
@@ -19,6 +21,9 @@ GetOptions(
     'clone-mount-point|c=s'     => \$clone_mount_point,
     'create-required-folder|f!' => \$create_required_folder
     );
+
+# dataset stores all information
+my $dataset = {};
 
 # generate a list of all zpools in the system
 my $zpools = get_all_zpools();
@@ -32,6 +37,24 @@ foreach my $zpool (@{$zpools})
     foreach my $zfs (@{$zfs_set})
     {
 	INFO "Working on zfs '$zfs'";
+
+	my $mountpoint = get_mountstatus_and_mountpoint_for_zfs($zfs);
+	my ($volume,$directories,$file) = (undef, undef, undef);
+	my @dirs = ();
+
+	if (defined $mountpoint)
+	{
+	    INFO "The zfs '$zfs' is currently mounted at '$mountpoint'";
+	    my $no_file = 1;
+	    ($volume,$directories,$file) = File::Spec->splitpath( $mountpoint, $no_file );
+	    @dirs = File::Spec->splitdir( $directories );
+	} else {
+	    INFO "Seems that '$zfs' is currently not mounted";
+	}
+
+	$dataset->{$zpool}{$zfs}{mountpoint} = $mountpoint;
+	$dataset->{$zpool}{$zfs}{mounted} = (defined $mountpoint) ? 1 : undef;
+	$dataset->{$zpool}{$zfs}{dirs} = \@dirs;
     }
 }
 
