@@ -33,35 +33,37 @@ foreach my $zpool (@{$zpools})
 {
     INFO "Working on zpool '$zpool'";
 
-    my $zfs_set = get_all_zfs($zpool);
-
-    foreach my $zfs (@{$zfs_set})
-    {
-	INFO "Working on zfs '$zfs'";
-
-	my $mountpoint = get_mountstatus_and_mountpoint_for_zfs($zfs);
-	my ($volume,$directories,$file) = (undef, undef, undef);
-	my @dirs = ();
-
-	if (defined $mountpoint)
-	{
-	    INFO "The zfs '$zfs' is currently mounted at '$mountpoint'";
-	    my $no_file = 1;
-	    ($volume,$directories,$file) = File::Spec->splitpath( $mountpoint, $no_file );
-	    @dirs = File::Spec->splitdir( $directories );
-	} else {
-	    INFO "Seems that '$zfs' is currently not mounted";
-	}
-
-	push(@dataset, {
-	    zpool => $zpool,
-	    zfs   => $zfs,
-	    mountpoint => $mountpoint,
-	    mounted => (defined $mountpoint) ? 1 : undef,
-	    dirs => \@dirs,
-	     });
-    }
+    push(@dataset, get_all_zfs($zpool));
 }
+#     my $zfs_set = get_all_zfs($zpool);
+
+#     foreach my $zfs (@{$zfs_set})
+#     {
+# 	INFO "Working on zfs '$zfs'";
+
+# 	my $mountpoint = get_mountstatus_and_mountpoint_for_zfs($zfs);
+# 	my ($volume,$directories,$file) = (undef, undef, undef);
+# 	my @dirs = ();
+
+# 	if (defined $mountpoint)
+# 	{
+# 	    INFO "The zfs '$zfs' is currently mounted at '$mountpoint'";
+# 	    my $no_file = 1;
+# 	    ($volume,$directories,$file) = File::Spec->splitpath( $mountpoint, $no_file );
+# 	    @dirs = File::Spec->splitdir( $directories );
+# 	} else {
+# 	    INFO "Seems that '$zfs' is currently not mounted";
+# 	}
+
+# 	push(@dataset, {
+# 	    zpool => $zpool,
+# 	    zfs   => $zfs,
+# 	    mountpoint => $mountpoint,
+# 	    mounted => (defined $mountpoint) ? 1 : undef,
+# 	    dirs => \@dirs,
+# 	     });
+#     }
+# }
 
 # sort the dataset based on the mountpoint directory level, to asure the existance of required folders
 @dataset = sort { int(@{$a->{dirs}}) <=> int(@{$b->{dirs}}) || $a->{mountpoint} cmp $b->{mountpoint} || $a->{zpool} cmp $b->{zpool} || $a->{zfs} cmp $b->{zfs} } @dataset;
@@ -119,7 +121,7 @@ sub get_all_zfs
 	LOGDIE("No value for zpool is given, but you need to provide one!");
     }
 
-    my $cmd = "zfs list -H -r -o name -t filesystem $zpool";
+    my $cmd = "zfs list -H -r -o name,origin,mounted,mountpoint -t filesystem $zpool";
 
     DEBUG "Running command '$cmd'";
 
@@ -130,9 +132,54 @@ sub get_all_zfs
 	LOGDIE("Unable to run command '$cmd'\n");
     }
 
-    my @result = split(/\n/, $output);
+    my @result = ();
 
-    return \@result;
+    foreach my $line (split(/\n/, $output))
+    {
+	my ($zfs, $origin, $mounted, $mountpoint) = split(/\t/, $line);
+
+	my $is_a_clone = undef;
+
+	if ($origin =~ /-/)
+	{
+	    $is_a_clone = undef;
+	    $origin = undef;
+	} else {
+	    $is_a_clone = 1;
+	    # check if the origin is a snapshot named like $backup_snapshot_name
+	    my $base_snapshot = $origin;
+	    $base_snapshot =~ s/^.+@//;
+	    if ($base_snapshot eq $backup_snapshot_name)
+	    {
+		INFO "Ignoring clone '$zfs' based on snapshot '$origin'";
+		next;
+	    }
+	}
+
+	my $is_mounted = undef;
+	my ($volume,$directories,$file);
+	my @dirs;
+
+	if ($mounted =~ /yes/)
+	{
+	    my $no_file = 1;
+	    ($volume,$directories,$file) = File::Spec->splitpath( $mountpoint, $no_file );
+	    @dirs = File::Spec->splitdir( $directories );
+	    $is_mounted = 1;
+	}
+
+	push(@result, {
+	    zpool => $zpool,
+	    zfs   => $zfs,
+	    mountpoint => $mountpoint,
+	    mounted => $is_mounted,
+	    dirs => \@dirs,
+	    clone => $is_a_clone,
+	    origin => $origin
+	     });
+    }
+
+    return @result;
 }
 
 # sub get_mountstatus_and_mountpoint_for_zfs
