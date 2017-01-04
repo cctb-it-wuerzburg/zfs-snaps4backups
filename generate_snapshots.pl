@@ -121,7 +121,7 @@ sub get_all_zfs
 	}
 
 	# test if the dataset has the backup mountpoint, then skip that dataset
-	if ($mointpoint eq $clone_mount_point)
+	if ($mountpoint eq $clone_mount_point)
 	{
 	    INFO "Ignoring dataset '$zfs' because it has mountpoint '$clone_mount_point' which should be final mountpoint!";
 	    next;
