@@ -13,26 +13,6 @@ use File::Path;
 
 my $VERSION = v0.1.0;
 
-# sub run_cmd
-#
-# run a external program call and dies, if something wents wrong
-
-sub run_cmd
-{
-    my $cmd = shift;
-
-    DEBUG "Running command '$cmd'";
-
-    my $output = qx($cmd);
-
-    if ($? != 0)
-    {
-	LOGDIE("Unable to run command '$cmd'\n");
-    }
-
-    return $output;
-}
-
 my $backup_snapshot_name   = "backup-snap";
 my $clone_mount_point      = "/backup";
 my $create_required_folder = 1;
@@ -282,6 +262,26 @@ sub clone_snapshot_ro_with_mountpoint
     run_cmd("zfs clone -o readonly=on -o mountpoint=$mountpoint $snapshotname $zfs_clone");
 
     return $zfs_clone;
+}
+
+# sub run_cmd
+#
+# run a external program call and dies, if something wents wrong
+
+sub run_cmd
+{
+    my $cmd = shift;
+
+    DEBUG "Running command '$cmd'";
+
+    my $output = qx($cmd);
+
+    if ($? != 0)
+    {
+	LOGDIE("Unable to run command '$cmd'\n");
+    }
+
+    return $output;
 }
 
 =pod
