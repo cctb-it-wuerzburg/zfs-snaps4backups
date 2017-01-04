@@ -57,8 +57,8 @@ foreach my $current_dataset (@dataset)
     INFO "Created snapshot '$snapshot_name'";
 
     # clone the snapshot as read only with correct mountpoint
-    my $backup_clone_dataset = join("/", ($current_dataset->{zpool}, $backup_dataset, $current_dataset->{mountpoint}));
-    my $clone_mountpoint = clone_snapshot_ro_with_mountpoint($snapshot_name, $backup_clone_dataset);
+    my $backup_clone_dataset = File::Spec->catdir($current_dataset->{zpool}, $backup_dataset, $current_dataset->{mountpoint});
+    my $clone_mountpoint = clone_snapshot_ro_with_mountpoint($backup_clone_dataset, $snapshot_name);
 
     # return the path to the clone
     print $clone_mountpoint,"\n";
@@ -104,7 +104,7 @@ sub create_backup_dataset_unless_exists
 	LOGDIE("No value for clone_mount_point is given, but you need to provide one!");
     }
 
-    my $dataset2create = join("/", ($zpool, $backup_dataset));
+    my $dataset2create = File::Spec->catdir($zpool, $backup_dataset);
 
     # check if the dataset already exists
     my $output;
