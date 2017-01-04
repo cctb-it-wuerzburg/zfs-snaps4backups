@@ -326,21 +326,6 @@ sub clone_snapshot_ro_with_mountpoint
     return $zfs_clone;
 }
 
-sub run_cmd
-{
-    my $cmd = shift;
-
-    DEBUG "Running command '$cmd'";
-    my $output = qx($cmd);
-
-    if ($? != 0)
-    {
-	LOGDIE("Unable to run command '$cmd'\n");
-    }
-
-    return $zfs_clone;
-}
-
 =pod
 
 =head1 generate_snapshots.pl
