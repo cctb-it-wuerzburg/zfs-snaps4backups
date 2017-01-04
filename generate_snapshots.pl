@@ -110,7 +110,7 @@ sub create_backup_dataset_unless_exists
     my $output;
     eval { $output = run_cmd("zfs list -o mountpoint -H -t filesystem $dataset2create") };
 
-    unless ($@)
+    if ($@)
     {
 	# does the mount point exist?
 	my $prevent_from_mounting = File::Spec->catdir( $clone_mount_point, "prevent_from_mounting" );
