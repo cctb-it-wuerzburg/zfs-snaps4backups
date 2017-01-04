@@ -130,6 +130,7 @@ sub create_backup_dataset_unless_exists
     }
 
     # is the mountpoint correct?
+    chomp($output);
     if ($output ne $clone_mount_point)
     {
 	LOGDIE("The dataset '$dataset2create' exists, but has the wrong mountpoint (expecting: '$clone_mount_point' but found '$output')");
