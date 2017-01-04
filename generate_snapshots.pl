@@ -57,7 +57,8 @@ foreach my $current_dataset (@dataset)
     INFO "Created snapshot '$snapshot_name'";
 
     # clone the snapshot as read only with correct mountpoint
-    clone_snapshot_ro_with_mountpoint($current_dataset->{zpool}, join("/", ($current_dataset->{zpool}, $backup_snapshot_name)), $snapshot_name, $clone_mountpoint);
+    my $backup_clone_dataset = join("/", ($current_dataset->{zpool}, $backup_dataset, $current_dataset->{mountpoint}));
+    my $clone_mountpoint = clone_snapshot_ro_with_mountpoint($snapshot_name, $backup_clone_dataset);
 
     # return the path to the clone
     print $clone_mountpoint,"\n";
@@ -278,16 +279,11 @@ sub check_or_create_folder
 
 sub clone_snapshot_ro_with_mountpoint
 {
-    my $zpool = shift;
-    unless (defined $zpool)
-    {
-	LOGDIE("No value for zpool is given, but you need to provide one!");
-    }
+    my $backup_clone_dataset = shift;
 
-    my $zpool_backup = shift;
-    unless (defined $zpool)
+    unless (defined $backup_clone_dataset)
     {
-	LOGDIE("No value for zpool is given, but you need to provide one!");
+	LOGDIE("No value for backup_clone_dataset is given, but you need to provide one!");
     }
 
     my $snapshotname = shift;
@@ -297,26 +293,10 @@ sub clone_snapshot_ro_with_mountpoint
 	LOGDIE("No value for snapshotname is given, but you need to provide one!");
     }
 
-    my $mountpoint = shift;
+    DEBUG "Trying to clone '$snapshotname' to '$backup_clone_dataset' as readonly dataset";
+    run_cmd("zfs clone -o readonly=on $snapshotname $backup_clone_dataset");
 
-    unless (defined $mountpoint)
-    {
-	LOGDIE("No value for mountpoint is given, but you need to provide one!");
-    }
-
-    my $zfs_clone = $snapshotname;
-    unless ($zfs_clone =~ tr/@/@/ != 0)
-    {
-	LOGDIE "More than one @ in snapshotname '$snapshotname'";
-    }
-
-    $zfs_clone =~ s/@.+//;
-    $zfs_clone =~ s/$zpool/$zpool_backup/;
-
-    DEBUG "Trying to clone '$snapshotname' to '$zfs_clone' as readonly set with mountpoint '$mountpoint'";
-    run_cmd("zfs clone -o readonly=on -o mountpoint=$mountpoint $snapshotname $zfs_clone");
-
-    return $zfs_clone;
+    return run_cmd("zfs list -o mountpoint $backup_clone_dataset");
 }
 
 # sub run_cmd
