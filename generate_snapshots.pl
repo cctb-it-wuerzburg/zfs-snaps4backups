@@ -297,7 +297,7 @@ sub clone_snapshot_ro_with_mountpoint
     }
 
     DEBUG "Trying to clone '$snapshotname' to '$backup_clone_dataset' as readonly dataset";
-    run_cmd("zfs clone -o readonly=on $snapshotname $backup_clone_dataset");
+    run_cmd("zfs clone -p -o readonly=on $snapshotname $backup_clone_dataset");
 
     return run_cmd("zfs list -H -o mountpoint $backup_clone_dataset");
 }
