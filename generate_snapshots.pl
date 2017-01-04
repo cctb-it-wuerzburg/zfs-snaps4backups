@@ -161,55 +161,6 @@ sub get_all_zfs
     return @result;
 }
 
-# sub get_mountstatus_and_mountpoint_for_zfs
-#
-# returns the mountstatus and the mountpoint for an zfs
-# if returns a defined value, the zfs is mounted
-
-sub get_mountstatus_and_mountpoint_for_zfs
-{
-    my $zfs = shift;
-
-    unless (defined $zfs)
-    {
-	LOGDIE("No value for zfs is given, but you need to provide one!");
-    }
-
-    my $mountpoint = undef;
-
-    my $cmd = "zfs get mounted -o value -H $zfs";
-
-    DEBUG "Running command '$cmd'";
-
-    my $output = qx($cmd);
-
-    if ($? != 0)
-    {
-	LOGDIE("Unable to run command '$cmd'\n");
-    }
-
-    # the value should be yes in case the zfs is mounted
-    if ($output =~ /^\s*yes\s*$/i)
-    {
-	$cmd = "zfs get mountpoint -o value -H $zfs";
-
-	DEBUG "Running command '$cmd'";
-
-	$output = qx($cmd);
-
-	if ($? != 0)
-	{
-	    LOGDIE("Unable to run command '$cmd'\n");
-	}
-
-	$output =~ s/^\s+|\s+//g;
-
-	$mountpoint = $output;
-    }
-
-    return $mountpoint;
-}
-
 # sub create_snapshot
 #
 # creates a snapshot of a zfs and returns the complete name bases on the name of a zfs and a snapshot name
