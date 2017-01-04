@@ -46,10 +46,6 @@ foreach my $current_dataset (@dataset)
     my $snapshot_name = create_snapshot($current_dataset->{zfs}, $backup_snapshot_name);
     INFO "Created snapshot '$snapshot_name'";
 
-    # check if folder exists for mounting the clone
-    my $clone_mountpoint = check_or_create_folder($current_dataset->{mountpoint}, $clone_mount_point);
-    INFO "Created folder '$clone_mountpoint'";
-
     # clone the snapshot as read only with correct mountpoint
     clone_snapshot_ro_with_mountpoint($current_dataset->{zpool}, join("/", ($current_dataset->{zpool}, $backup_snapshot_name)), $snapshot_name, $clone_mountpoint);
 
@@ -70,9 +66,65 @@ sub get_all_zpools
     return \@result;
 }
 
-# sub get_all_zfs
+# sub create_backup_dataset_unless_exists
 #
-# returns an array of all available zfs for a given pool
+# creates a dataset for the backup clones if not already existing
+
+sub create_backup_dataset_unless_exists
+{
+    my $zpool = shift;
+
+    unless (defined $zpool)
+    {
+	LOGDIE("No value for zpool is given, but you need to provide one!");
+    }
+
+    my $backup_dataset = shift;
+
+    unless (defined $backup_dataset)
+    {
+	LOGDIE("No value for backup_dataset is given, but you need to provide one!");
+    }
+
+    my $clone_mount_point = shift;
+
+    unless (defined $clone_mount_point)
+    {
+	LOGDIE("No value for clone_mount_point is given, but you need to provide one!");
+    }
+
+    my $dataset2create = join("/", ($zpool, $backup_dataset));
+
+    # check if the dataset already exists
+    my $output;
+    eval { $output = run_cmd("zfs list -o mountpoint -H -t filesystem $dataset2create") };
+
+    unless ($@)
+    {
+	# does the mount point exist?
+	my $prevent_from_mounting = File::Spec->catdir( $clone_mount_point, "prevent_from_mounting" );
+	unless (-e $clone_mount_point && -e $prevent_from_mounting)
+	{
+	    check_or_create_folder($prevent_from_mounting);
+	}
+
+	run_cmd("zfs create -o mountpoint=$clone_mount_point ".
+                           "-o com.sun:auto-snapshot=false ".
+                           "-o com.sun:auto-snapshot:monthly=false ".
+                           "-o com.sun:auto-snapshot:weekly=false ".
+                           "-o com.sun:auto-snapshot:hourly=false ".
+		           "-o com.sun:auto-snapshot:daily=false ".
+                           "-o com.sun:auto-snapshot:frequent=false ".
+                            $dataset2create);
+    }
+
+    # is the mountpoint correct?
+    if ($output ne $clone_mount_point)
+    {
+	LOGDIE("The dataset '$dataset2create' exists, but has the wrong mountpoint (expecting: '$clone_mount_point' but found '$output')");
+    }
+
+}
 
 sub get_all_zfs
 {
@@ -184,21 +236,14 @@ sub create_snapshot
 
 sub check_or_create_folder
 {
-    my $mountpoint = shift;
+    my $folder2create = shift;
 
-    unless (defined $mountpoint)
+    unless (defined $folder2create)
     {
-	LOGDIE("No value for mountpoint is given, but you need to provide one!");
+	LOGDIE("No value for the folder to create is given, but you need to provide one!");
     }
 
-    my $backupfolder = shift;
-
-    unless (defined $backupfolder)
-    {
-	LOGDIE("No value for backupfolder is given, but you need to provide one!");
-    }
-
-    my $path = File::Spec->catdir( $backupfolder, $mountpoint );
+    my $path = $folder2create;
 
     DEBUG "Will try to create folder '$path'";
     File::Path->make_path($path, { error => \my $err } );
