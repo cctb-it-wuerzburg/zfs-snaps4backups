@@ -35,35 +35,6 @@ foreach my $zpool (@{$zpools})
 
     push(@dataset, get_all_zfs($zpool));
 }
-#     my $zfs_set = get_all_zfs($zpool);
-
-#     foreach my $zfs (@{$zfs_set})
-#     {
-# 	INFO "Working on zfs '$zfs'";
-
-# 	my $mountpoint = get_mountstatus_and_mountpoint_for_zfs($zfs);
-# 	my ($volume,$directories,$file) = (undef, undef, undef);
-# 	my @dirs = ();
-
-# 	if (defined $mountpoint)
-# 	{
-# 	    INFO "The zfs '$zfs' is currently mounted at '$mountpoint'";
-# 	    my $no_file = 1;
-# 	    ($volume,$directories,$file) = File::Spec->splitpath( $mountpoint, $no_file );
-# 	    @dirs = File::Spec->splitdir( $directories );
-# 	} else {
-# 	    INFO "Seems that '$zfs' is currently not mounted";
-# 	}
-
-# 	push(@dataset, {
-# 	    zpool => $zpool,
-# 	    zfs   => $zfs,
-# 	    mountpoint => $mountpoint,
-# 	    mounted => (defined $mountpoint) ? 1 : undef,
-# 	    dirs => \@dirs,
-# 	     });
-#     }
-# }
 
 # sort the dataset based on the mountpoint directory level, to asure the existance of required folders
 @dataset = sort { int(@{$a->{dirs}}) <=> int(@{$b->{dirs}}) || $a->{mountpoint} cmp $b->{mountpoint} || $a->{zpool} cmp $b->{zpool} || $a->{zfs} cmp $b->{zfs} } @dataset;
