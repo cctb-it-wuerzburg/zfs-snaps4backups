@@ -23,6 +23,8 @@ GetOptions(
     'create-required-folder|f!' => \$create_required_folder
     );
 
+my $backup_dataset = $backup_snapshot_name;
+
 # dataset stores all information
 my @dataset = ();
 
@@ -33,7 +35,15 @@ foreach my $zpool (@{$zpools})
 {
     INFO "Working on zpool '$zpool'";
 
-    push(@dataset, get_all_zfs($zpool));
+    # get the datasets to backup
+    my @datasets_to_backup = get_all_zfs($zpool);
+
+    # if we got datasets go ahead and try to generate a backup dataset on all zpools
+    if (@datasets_to_backup)
+    {
+	create_backup_dataset_unless_exists($zpool, $backup_dataset, $clone_mount_point);
+	push(@dataset, @datasets_to_backup);
+    }
 }
 
 # sort the dataset based on the mountpoint directory level, to asure the existance of required folders
