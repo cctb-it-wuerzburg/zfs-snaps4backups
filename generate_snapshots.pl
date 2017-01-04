@@ -83,16 +83,7 @@ foreach my $current_dataset (@dataset)
 
 sub get_all_zpools
 {
-    my $cmd = "sudo zpool list -H -o name";
-
-    DEBUG "Running command '$cmd'";
-
-    my $output = qx($cmd);
-
-    if ($? != 0)
-    {
-	LOGDIE("Unable to run command '$cmd'\n");
-    }
+    my $output = run_cmd("zpool list -H -o name");
 
     my @result = split(/\n/, $output);
 
@@ -112,17 +103,7 @@ sub get_all_zfs
 	LOGDIE("No value for zpool is given, but you need to provide one!");
     }
 
-    my $cmd = "zfs list -H -r -o name,origin,mounted,mountpoint -t filesystem $zpool";
-
-    DEBUG "Running command '$cmd'";
-
-    my $output = qx($cmd);
-
-    if ($? != 0)
-    {
-	LOGDIE("Unable to run command '$cmd'\n");
-    }
-
+    my $output = run_cmd("zfs list -H -r -o name,origin,mounted,mountpoint -t filesystem $zpool");
     my @result = ();
 
     foreach my $line (split(/\n/, $output))
@@ -245,28 +226,15 @@ sub create_snapshot
     my $snap = join("@", ($zfs, $snapshotname));
 
     # check if the snapshot exists
-    my $cmd = "zfs list -t snapshot $snap";
+    eval { run_cmd("zfs list -t snapshot $snap") };
 
-    DEBUG "Running command '$cmd'";
-
-    my $output = qx($cmd);
-
-    if ($? == 0)
+    unless ($@)
     {
 	# snapshot exists
 	INFO "Snapshot '$snap' exists. Assuming an interrupted backup and returning old snapshot";
     } else {
 	# snapshot not yet exists, create it
-	$cmd = "zfs snapshot $snap";
-
-	DEBUG "Running command '$cmd'";
-
-	$output = qx($cmd);
-
-	if ($? != 0)
-	{
-	    LOGDIE("Unable to run command '$cmd'\n");
-	}
+	run_cmd("zfs snapshot $snap");
     }
 
     return $snap;
