@@ -119,14 +119,16 @@ sub create_backup_dataset_unless_exists
 	    check_or_create_folder($prevent_from_mounting);
 	}
 
-	run_cmd("zfs create -o mountpoint=$clone_mount_point ".
+	eval { run_cmd("zfs create -o mountpoint=$clone_mount_point ".
                            "-o com.sun:auto-snapshot=false ".
                            "-o com.sun:auto-snapshot:monthly=false ".
                            "-o com.sun:auto-snapshot:weekly=false ".
                            "-o com.sun:auto-snapshot:hourly=false ".
 		           "-o com.sun:auto-snapshot:daily=false ".
                            "-o com.sun:auto-snapshot:frequent=false ".
-                            $dataset2create);
+                            $dataset2create) };
+
+	$output = run_cmd("zfs list -o mountpoint -H -t filesystem $dataset2create");
     }
 
     # is the mountpoint correct?
