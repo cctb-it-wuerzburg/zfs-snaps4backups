@@ -140,7 +140,7 @@ sub get_all_zfs
 
 	my $is_a_clone = undef;
 
-	if ($origin =~ /-/)
+	if ($origin eq "-")
 	{
 	    $is_a_clone = undef;
 	    $origin = undef;
